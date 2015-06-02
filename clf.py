@@ -46,9 +46,9 @@ print sum_use
 -train and testing
 '''
 label = np.array(label)
-#vc = CV(analyzer='char_wb', ngram_range=(2,5), min_df=1, token_pattern='[a-z]{2,}')
+vc = CV(analyzer='char_wb', ngram_range=(2,5), min_df=1, token_pattern='[a-z]{2,}')
 #vc = TV(analyzer='char_wb', ngram_range=(2,3), min_df=1, token_pattern='[a-z]{2,}')
-vc = CV(token_pattern='[a-z]{2,}')
+#vc = CV(token_pattern='[a-z]{2,}')
 #vc = TV(token_pattern='[a-z]{2,}', binary=True)
 vector = vc.fit_transform(data).toarray()
 #print len(vc.get_feature_names())
@@ -67,8 +67,8 @@ in general, from experiments we see:
     -whole word>n-gram-ed vector
 '''
 #clf = DT(criterion='entropy', random_state=0)
-#clf = RFC(n_estimators=50, criterion='entropy')
-clf = GNB()
+clf = RFC(n_estimators=50, criterion='entropy')
+#clf = GNB()
 #clf = MNB()
 #clf = SVC(C=0.1,kernel='linear')
 tmp = 0
