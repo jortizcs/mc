@@ -7,6 +7,8 @@ from sklearn.metrics import accuracy_score
 import numpy as np
 import random
 import pprint
+from tabulate import tabulate
+from operator import itemgetter, attrgetter
 
 class classifierObject:
 
@@ -59,7 +61,7 @@ class classifierObject:
             -whole word>n-gram-ed vector
         '''
         #clf = DT(criterion='entropy', random_state=0)
-        self.clf = RFC(n_estimators=100, criterion='entropy')
+        self.clf = RFC(n_estimators=50, criterion='entropy')
         #clf = GNB()
         #clf = MNB()
         #clf = SVC(C=0.1,kernel='linear')
@@ -92,9 +94,20 @@ class classifierObject:
     def predictLabel(self,data):
         vc = CV(vocabulary=self.vc.get_feature_names()) 
         sample = vc.fit_transform([data]).toarray()
-        print sample
         return self.rmapping[self.clf.predict(sample)[0]]
-        #return "none"
+
+    def getClassProbabilities(self,data):
+        vc = CV(vocabulary=self.vc.get_feature_names()) 
+        sample = vc.fit_transform([data]).toarray()
+        probs = self.clf.predict_proba(sample)[0]
+        table = []
+        for i in range(1,len(probs)):
+            entry = []
+            entry.append(self.rmapping[i+1])
+            entry.append(probs[i])
+            table.append(entry)
+        print tabulate(table, ["topic", "class prob."])
+        return table
 
     def getLabelBruteForce(self, data):
         self.label = np.array(self.label)
@@ -114,12 +127,54 @@ class classifierObject:
                 tag = self.label[i]
         return self.rmapping[tag]
 
-    def getTopKFeaturesAndCounts(self, idx):
-        return
+    def getTopKFeaturesAndCounts(self, data, k=10):
+        feature_names = self.vc.get_feature_names()
+        fnames = np.asarray(feature_names)
+        vc = CV(vocabulary=feature_names) 
+        sample = vc.fit_transform([data]).toarray()[0]
+        nz_fcnt_tot = sample[sample[:]>0]
+        nz=sample.nonzero()
+        names = fnames[nz[0]]
+
+        # zip up the two arrays to create a [name,cnt] array
+        zipt = np.dstack((names,nz_fcnt_tot))
+
+        #print the top k 
+        l = np.array(range(0,len(nz_fcnt_tot)))
+        pos = np.dstack((l,nz_fcnt_tot))
+        pos2 = np.array(sorted(pos[0], key=itemgetter(1)))
+        idxs= []
+        counts = []
+        for id_ in range(0,len(pos2)):
+            idxs.append(pos2[id_][0])
+            counts.append(pos2[id_][1])
+        
+        tki = idxs[len(idxs)-k:len(idxs)]
+        counts_ = counts[len(idxs)-k:len(idxs)]
+        entry={}
+        entry['name']="sample"
+        entry['children']=[]
+        res = []
+        for idx in range(0,len(names[tki])):
+            fentry = {}
+            fentry['name']=names[tki][idx]
+            fentry['size']=counts_[idx]
+            entry['children'].append(fentry)
+            res_entry = []
+            res_entry.append(names[tki][idx])
+            res_entry.append(counts_[idx])
+            res.append(res_entry)
+        return res
         
 
 if __name__=="__main__":
     co = classifierObject()
     #print co.getLabelBruteForce("hello world what should i be writing here, i don't know")
-    label= co.predictLabel("hello world what should i be writing here, i don't know")
-    print label
+    sample = "hello world what should i be writing here, i don't know"
+    print "\n\n===="
+    table = co.getClassProbabilities(sample)
+    label= co.predictLabel(sample)
+    print "\n\nclass_label=" + label
+
+    print "\n\n=======\n\n"
+    print co.getTopKFeaturesAndCounts(sample,k=10)
