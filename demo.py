@@ -71,7 +71,6 @@ print '==================================='
 #tags = np.array(vc.get_feature_names())
 #add = tags[(target-tmp)==1]
 #rmv = tags[(tmp-target)==1]
-'''
 target = field[idx].split()
 tmp = ddl.split()
 rmv = []
@@ -85,7 +84,7 @@ for t in target:
 print 'need to remove:', ' | '.join(rmv)
 print 'need to add:', ' | '.join(add)
 
-'''
+
 
 
 
